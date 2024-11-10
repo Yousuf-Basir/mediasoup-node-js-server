@@ -6,8 +6,7 @@ import path from 'path';
 import { Server } from 'socket.io';
 import mediasoup from 'mediasoup';
 import http from 'http';
-import Process from 'child_process';
-import FFmpegStatic from 'ffmpeg-static';
+import { startRecording, stopRecording } from './libs/record.js';
 
 const __dirname = path.resolve();
 
@@ -267,10 +266,44 @@ connections.on('connection', async socket => {
     const { consumer } = consumers.find(consumerData => consumerData.consumer.id === serverConsumerId);
     await consumer.resume();
   });
-  
+
+  socket.on('startRecording', async ({ producerId }, callback) => {
+    try {
+      const producer = producers.find(p => p.producer.id === producerId)?.producer;
+      if (!producer) {
+        callback({ error: 'Producer not found' });
+        return;
+      }
+
+      const fileName = await startRecording(producer, peers[socket.id].roomName, socket.id, rooms);
+      callback({ success: true, fileName });
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      callback({ error: error.message });
+    }
+  });
+
+  socket.on('stopRecording', async ({ producerId }, callback) => {
+    try {
+      const filePath = await stopRecording(producerId);
+      if (!filePath) {
+        callback({ error: 'Recording not found' });
+        return;
+      }
+      callback({ success: true, filePath });
+    } catch (error) {
+      console.error('Error stopping recording:', error);
+      callback({ error: error.message });
+    }
+  });
+
   // Add cleanup on disconnect
   socket.on('disconnect', () => {
-    
+    producers.forEach(producerData => {
+      if (producerData.socketId === socket.id) {
+        stopRecording(producerData.producer.id);
+      }
+    });
   });
 });
 
