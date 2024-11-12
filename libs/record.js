@@ -93,10 +93,9 @@ export const startRecording = async (producer, roomName, peerId, rooms) => {
             ffmpegArgs = ffmpegArgs.concat([
                 '-c:v', 'copy',
                 '-an',
-                '-movflags', '+faststart+frag_keyframe+empty_moov+default_base_moof',  // Enable streaming-friendly MP4
-                '-f', 'matroska',            // MKV format handles real-time better than MP4
-                '-cluster_size_limit', '2M',  // Small cluster size for frequent writes
-                '-cluster_time_limit', '5000' // Write clusters every 5 seconds
+                '-f', 'matroska',
+                '-cluster_size_limit', '2M',
+                '-cluster_time_limit', '5000'
             ]);
         } else {
             ffmpegArgs = ffmpegArgs.concat([
