@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 import mediasoup from 'mediasoup';
 import http from 'http';
 import { startRecording, stopRecording } from './libs/record.js';
+import { startCombinedRecording, stopCombinedRecording } from './libs/combinedRecord.js';
 
 const __dirname = path.resolve();
 
@@ -267,32 +268,49 @@ connections.on('connection', async socket => {
     await consumer.resume();
   });
 
-  socket.on('startRecording', async ({ producerId }, callback) => {
+  socket.on('startRecording', async ({ audioProducerId, videoProducerId }, callback) => {
     try {
-      const producer = producers.find(p => p.producer.id === producerId)?.producer;
-      if (!producer) {
-        callback({ error: 'Producer not found' });
+      // Find both audio and video producers
+      const audioProducer = producers.find(p => p.producer.id === audioProducerId)?.producer;
+      const videoProducer = producers.find(p => p.producer.id === videoProducerId)?.producer;
+
+      // Validate that both producers exist
+      if (!audioProducer || !videoProducer) {
+        callback({ error: 'One or both producers not found' });
         return;
       }
 
-      const fileName = await startRecording(producer, peers[socket.id].roomName, socket.id, rooms);
+      // Validate producer kinds
+      if (audioProducer.kind !== 'audio' || videoProducer.kind !== 'video') {
+        callback({ error: 'Invalid producer kinds. Need one audio and one video producer.' });
+        return;
+      }
+
+      const fileName = await startCombinedRecording(
+        audioProducer,
+        videoProducer,
+        peers[socket.id].roomName,
+        socket.id,
+        rooms
+      );
+
       callback({ success: true, fileName });
     } catch (error) {
-      console.error('Error starting recording:', error);
+      console.error('Error starting combined recording:', error);
       callback({ error: error.message });
     }
   });
 
-  socket.on('stopRecording', async ({ producerId }, callback) => {
+  socket.on('stopRecording', async ({ audioProducerId, videoProducerId }, callback) => {
     try {
-      const filePath = await stopRecording(producerId);
+      const filePath = await stopCombinedRecording(audioProducerId, videoProducerId);
       if (!filePath) {
         callback({ error: 'Recording not found' });
         return;
       }
       callback({ success: true, filePath });
     } catch (error) {
-      console.error('Error stopping recording:', error);
+      console.error('Error stopping combined recording:', error);
       callback({ error: error.message });
     }
   });
@@ -301,7 +319,7 @@ connections.on('connection', async socket => {
   socket.on('disconnect', () => {
     producers.forEach(producerData => {
       if (producerData.socketId === socket.id) {
-        stopRecording(producerData.producer.id);
+        stopCombinedRecording(producerData.producer.id);
       }
     });
   });
