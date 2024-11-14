@@ -108,29 +108,29 @@ export const startRecording = async (producer, roomName, peerId, rooms) => {
 
         ffmpegArgs.push(filePath);
 
-        const ffmpeg = spawn(FFmpegStatic, ffmpegArgs);
+        // const ffmpeg = spawn(FFmpegStatic, ffmpegArgs);
 
-        let ffmpegLogs = '';
-        ffmpeg.stderr.on('data', data => {
-            const logData = data.toString();
-            ffmpegLogs += logData;
-            console.log('FFmpeg:', logData);
-        });
+        // let ffmpegLogs = '';
+        // ffmpeg.stderr.on('data', data => {
+        //     const logData = data.toString();
+        //     ffmpegLogs += logData;
+        //     console.log('FFmpeg:', logData);
+        // });
 
-        ffmpeg.on('error', error => {
-            console.error('FFmpeg error:', error);
-            console.error('FFmpeg logs:', ffmpegLogs);
-        });
+        // ffmpeg.on('error', error => {
+        //     console.error('FFmpeg error:', error);
+        //     console.error('FFmpeg logs:', ffmpegLogs);
+        // });
 
-        ffmpeg.on('exit', (code, signal) => {
-            console.log('FFmpeg exit with code:', code, 'signal:', signal);
-            if (code !== 0) {
-                console.error('FFmpeg full logs:', ffmpegLogs);
-            }
-            if (fs.existsSync(sdpPath)) {
-                fs.unlinkSync(sdpPath);
-            }
-        });
+        // ffmpeg.on('exit', (code, signal) => {
+        //     console.log('FFmpeg exit with code:', code, 'signal:', signal);
+        //     if (code !== 0) {
+        //         console.error('FFmpeg full logs:', ffmpegLogs);
+        //     }
+        //     if (fs.existsSync(sdpPath)) {
+        //         fs.unlinkSync(sdpPath);
+        //     }
+        // });
 
         // Connect transport
         await transport.connect({
@@ -142,11 +142,11 @@ export const startRecording = async (producer, roomName, peerId, rooms) => {
         recordings.set(producer.id, {
             transport,
             consumer,
-            ffmpeg,
+            // ffmpeg,
             filePath,
             sdpPath,
-            ffmpegLogs
-        });
+            // ffmpegLogs
+        }); 
 
         return fileName;
     } catch (error) {
