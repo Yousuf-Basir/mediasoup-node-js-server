@@ -1,0 +1,1 @@
+ffmpeg -protocol_whitelist "file,rtp,udp" -re -i ./recordings/video.sdp -protocol_whitelist "file,rtp,udp" -re -i ./recordings/audio.sdp -c:v libx264 -c:a aac -ar 44100 -ac 1 -f flv rtmp://localhost/live/stream

@@ -69,13 +69,14 @@ export const startRecording = async (producer, roomName, peerId, rooms) => {
         });
 
         const timestamp = new Date().getTime();
-        const fileName = `${roomName}_${peerId}_${consumer.kind}_${timestamp}.${consumer.kind === 'video' ? 'mkv' : 'opus'}`;
+        // const fileName = `${roomName}_${peerId}_${consumer.kind}_${timestamp}.${consumer.kind === 'video' ? 'mkv' : 'opus'}`;
+        const fileName = consumer.kind === 'audio' ? `audio.sdp`: `video.sdp`
         const filePath = path.join(recordingsPath, fileName);
 
         const port = consumer.kind === 'audio' ? 20000 : 20002;
 
         const sdpContent = generateSdp(consumer, port);
-        const sdpPath = path.join(recordingsPath, `${timestamp}.sdp`);
+        const sdpPath = path.join(recordingsPath, fileName);
         
         fs.writeFileSync(sdpPath, sdpContent.replace(/\r\n/g, '\n'));
 

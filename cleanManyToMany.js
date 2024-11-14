@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 import mediasoup from 'mediasoup';
 import http from 'http';
 import { startRecording, stopRecording } from './libs/record.js';
+import { runFFMPEGScript } from './libs/runFfmpeg.js';
 
 const __dirname = path.resolve();
 
@@ -276,6 +277,7 @@ connections.on('connection', async socket => {
       }
 
       const fileName = await startRecording(producer, peers[socket.id].roomName, socket.id, rooms);
+      await runFFMPEGScript();
       callback({ success: true, fileName });
     } catch (error) {
       console.error('Error starting recording:', error);
